@@ -20,6 +20,9 @@ def main():
     # Video source from webcam or video file.
     video_src = 0
     cam = cv2.VideoCapture(video_src)
+    cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640.0)
+    cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480.0)
+
 
     # Introduce mark_detector to detect landmarks.
     mark_detector = MarkDetector()
