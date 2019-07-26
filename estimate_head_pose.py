@@ -5,7 +5,10 @@ detection. The facial landmark detection is done by a custom Convolutional
 Neural Network trained with TensorFlow. After that, head pose is estimated
 by solving a PnP problem.
 """
-from multiprocessing import Process, Queue
+from multiprocessing import Queue
+
+import threading
+
 
 import numpy as np
 
@@ -35,6 +38,7 @@ def main():
     """MAIN"""
     # Video source from webcam or video file.
     video_src = 0
+    #video_src = "./head-pose-face-detection-female.mp4"
     cam = cv2.VideoCapture(video_src)
     if video_src == 0:
         cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -47,9 +51,11 @@ def main():
     img_queue = Queue()
     box_queue = Queue()
     img_queue.put(sample_frame)
-    box_process = Process(target=get_face, args=(
-        mark_detector, img_queue, box_queue,))
-    box_process.start()
+    
+    
+    thread = threading.Thread(target=get_face, args=(mark_detector, img_queue, box_queue))
+    thread.daemon = True
+    thread.start()
 
     # Introduce pose estimator to solve pose. Get one frame to setup the
     # estimator according to the image size.
@@ -87,7 +93,10 @@ def main():
         img_queue.put(frame)
 
         # Get face from box queue.
-        facebox = box_queue.get()
+        try:
+            facebox = box_queue.get()
+        except:
+            print("An exception occurred")
 
         if facebox is not None:
             # Detect landmarks from image of 128x128.
@@ -99,7 +108,7 @@ def main():
             tm.start()
             marks = mark_detector.detect_marks(face_img)
             tm.stop()
-            print(tm.getTimeSec()/tm.count())
+            #print(tm.getTimeSec()/tm.count())
 
             # Convert the marks locations from local CNN to global image.
             marks *= (facebox[2] - facebox[0])
@@ -135,8 +144,8 @@ def main():
             break
 
     # Clean up the multiprocessing process.
-    box_process.terminate()
-    box_process.join()
+    #thread.terminate()
+    #thread.
 
 
 if __name__ == '__main__':
