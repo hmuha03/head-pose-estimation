@@ -93,10 +93,8 @@ def main():
         img_queue.put(frame)
 
         # Get face from box queue.
-        try:
-            facebox = box_queue.get()
-        except:
-            print("An exception occurred")
+        facebox = box_queue.get()
+
 
         if facebox is not None:
             # Detect landmarks from image of 128x128.
